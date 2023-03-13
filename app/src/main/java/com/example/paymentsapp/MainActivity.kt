@@ -2,6 +2,7 @@ package com.example.paymentsapp
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
 import android.widget.Toast
@@ -9,9 +10,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,6 +30,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class MainActivity : ComponentActivity(), PaymentStatusListener {
+    @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -40,7 +40,22 @@ class MainActivity : ComponentActivity(), PaymentStatusListener {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    App()
+                    Scaffold(
+                        topBar = {
+                            TopAppBar(
+                                backgroundColor = Color.Gray,
+                                title = {
+                                    Text(
+                                        text = "ANDROID UPI PAYMENT", textAlign = TextAlign.Center,
+                                        modifier = Modifier.fillMaxWidth(),
+                                        color = Color.White
+                                    )
+                                }
+                            )
+                        }
+                    ) {
+                        payments(this)
+                    }
                 }
             }
         }
@@ -48,36 +63,54 @@ class MainActivity : ComponentActivity(), PaymentStatusListener {
 
     override fun onTransactionCancelled() {
         println("Cancelled.......")
-        Toast.makeText(this, "Transaction cancelled by user..", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, "Transaction cancelled by user..", Toast.LENGTH_SHORT).show()
     }
 
     override fun onTransactionCompleted(transactionDetails: TransactionDetails) {
-
-        Toast.makeText(this, "Transaction completed by user..", Toast.LENGTH_LONG).show()
-    }
-}
-
-@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
-@Composable
-fun App(){
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                backgroundColor = Color.Gray,
-                title = {
-                    Text(
-                        text = "ANDROID UPI PAYMENT", textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth(),
-                        color = Color.White
-                    )
-                }
-            )
-        }
-    ) {
-        payments(mainActivity = MainActivity())
+//        if(transactionDetails.transactionStatus.equals(false)){
+//            AlertComponent()
+//        }
+        Toast.makeText(this, "Transaction completed by user..", Toast.LENGTH_SHORT).show()
     }
 
+
 }
+
+//@Composable
+//fun AlertComponent(){
+//
+//
+//    AlertDialog(onDismissRequest = {},
+//        title = Text(text = "ANDROID UPI PAYMENT", color = Color.White),
+//    text = Text("Transaction failed", color = Color.White),
+//        backgroundColor = Color.Red,
+//        dismissButton = TextButton(onClick = {showDialog.value = false}) {
+//            Text(text = "Dismiss", color = Color.White)
+//        }
+//    )
+//}
+
+//@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
+//@Composable
+//fun App(){
+//    Scaffold(
+//        topBar = {
+//            TopAppBar(
+//                backgroundColor = Color.Gray,
+//                title = {
+//                    Text(
+//                        text = "ANDROID UPI PAYMENT", textAlign = TextAlign.Center,
+//                        modifier = Modifier.fillMaxWidth(),
+//                        color = Color.White
+//                    )
+//                }
+//            )
+//        }
+//    ) {
+//        payments(mainActivity = MainActivity())
+//    }
+//
+//}
 
 
 
@@ -175,6 +208,7 @@ private fun makePayment(
     mainActivity: PaymentStatusListener
 ) {
     try {
+        println(transcId)
         val payment = EasyUpiPayment(activity) {
             this.paymentApp = PaymentApp.ALL
             this.payeeVpa = upi
@@ -200,6 +234,6 @@ private fun makePayment(
 @Composable
 fun DefaultPreview() {
     PaymentsAppTheme {
-        App()
+
     }
 }
