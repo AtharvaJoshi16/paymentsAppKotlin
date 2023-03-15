@@ -8,6 +8,8 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
+//import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -15,13 +17,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+//import androidx.compose.ui.window.Dialog
 import com.example.paymentsapp.ui.theme.PaymentsAppTheme
+import com.example.paymentsapp.ui.theme.PrimaryGreen
 import dev.shreyaspatil.easyupipayment.EasyUpiPayment
 import dev.shreyaspatil.easyupipayment.listener.PaymentStatusListener
 import dev.shreyaspatil.easyupipayment.model.PaymentApp
@@ -30,6 +35,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class MainActivity : ComponentActivity(), PaymentStatusListener {
+
     @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,7 +49,7 @@ class MainActivity : ComponentActivity(), PaymentStatusListener {
                     Scaffold(
                         topBar = {
                             TopAppBar(
-                                backgroundColor = Color.Gray,
+                                backgroundColor = PrimaryGreen,
                                 title = {
                                     Text(
                                         text = "ANDROID UPI PAYMENT", textAlign = TextAlign.Center,
@@ -54,7 +60,7 @@ class MainActivity : ComponentActivity(), PaymentStatusListener {
                             )
                         }
                     ) {
-                        payments(this)
+                        Payments(this)
                     }
                 }
             }
@@ -62,15 +68,36 @@ class MainActivity : ComponentActivity(), PaymentStatusListener {
     }
 
     override fun onTransactionCancelled() {
-        println("Cancelled.......")
-        Toast.makeText(this, "Transaction cancelled by user..", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Transaction Cancelled", Toast.LENGTH_SHORT).show()
     }
 
     override fun onTransactionCompleted(transactionDetails: TransactionDetails) {
+        val builder = AlertDialog.Builder(this)
+        if(transactionDetails.transactionStatus.toString() == "FAILURE") {
+            builder.setTitle("Transaction Failed!")
+            val arr = arrayOf("Transaction ID : ${transactionDetails.transactionId}",
+                "Amount : Rs. ${transactionDetails.amount}",
+                "Transaction Status: ${transactionDetails.transactionStatus}",
+                "Transaction Ref ID: ${transactionDetails.transactionRefId}",
+                )
+            builder.setItems(arr) {
+                _ , which ->
+                    when(which) {
+                        0 -> {}
+                        1 -> {}
+                        2 -> {}
+                    }
+            }
+            val dialog = builder.create()
+            dialog.show()
+            Toast.makeText(this, "Transaction Failed", Toast.LENGTH_SHORT).show()
+        }else if(transactionDetails.transactionStatus.toString() == "SUCCESS"){
+            Toast.makeText(this, "Transaction Successful", Toast.LENGTH_SHORT).show()
+        }
 //        if(transactionDetails.transactionStatus.equals(false)){
 //            AlertComponent()
 //        }
-        Toast.makeText(this, "Transaction completed by user..", Toast.LENGTH_SHORT).show()
+
     }
 
 
@@ -78,8 +105,7 @@ class MainActivity : ComponentActivity(), PaymentStatusListener {
 
 //@Composable
 //fun AlertComponent(){
-//
-//
+//    var ctx = LocalContext.current
 //    AlertDialog(onDismissRequest = {},
 //        title = Text(text = "ANDROID UPI PAYMENT", color = Color.White),
 //    text = Text("Transaction failed", color = Color.White),
@@ -93,6 +119,7 @@ class MainActivity : ComponentActivity(), PaymentStatusListener {
 //@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 //@Composable
 //fun App(){
+//    var ctx = LocalContext.current
 //    Scaffold(
 //        topBar = {
 //            TopAppBar(
@@ -107,15 +134,14 @@ class MainActivity : ComponentActivity(), PaymentStatusListener {
 //            )
 //        }
 //    ) {
-//        payments(mainActivity = MainActivity())
+//        val activity = LocalContext.current as? Activity
+//        Payments(activity)
 //    }
-//
 //}
 
 
-
 @Composable
-fun payments(mainActivity: MainActivity){
+fun Payments(mainActivity: MainActivity) {
     val ctx= LocalContext.current
     val activity = (LocalContext.current as? Activity)
 
@@ -143,6 +169,10 @@ fun payments(mainActivity: MainActivity){
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+            Image(painter = painterResource(id = R.drawable.payment_img), alignment = Alignment.Center,contentDescription = null)
+        
+            Spacer(modifier = Modifier.height(25.dp))
+        
             TextField(value = amount.value,  onValueChange = {
                 amount.value = it
             }, placeholder = { Text(text = "Enter the amount") },
@@ -190,8 +220,8 @@ fun payments(mainActivity: MainActivity){
                 activity!!,
                 mainActivity
             )
-        }) {
-            Text(text = "PROCEED TO PAY")
+        }, colors = ButtonDefaults.buttonColors(backgroundColor = PrimaryGreen)) {
+            Text(text = "PROCEED TO PAY", color = Color.White)
         }
     }
 
@@ -215,8 +245,8 @@ private fun makePayment(
             this.payeeName = name
             this.transactionId = transcId
             this.transactionRefId = transcId
-            this.payeeMerchantCode = transcId
             this.description = desc
+            this.payeeMerchantCode = "1234"
             this.amount = amount
         }
 
@@ -224,7 +254,8 @@ private fun makePayment(
         payment.startPayment()
     } catch (e: Exception) {
         e.printStackTrace()
-        Toast.makeText(ctx,e.message,Toast.LENGTH_SHORT).show()
+        println(e.message)
+        Toast.makeText(ctx,"Error occurred",Toast.LENGTH_SHORT).show()
     }
 }
 
@@ -233,7 +264,9 @@ private fun makePayment(
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
+    val ctx = LocalContext.current
+    val activity = ctx as? Activity
     PaymentsAppTheme {
-
+        Payments(activity as MainActivity)
     }
 }
